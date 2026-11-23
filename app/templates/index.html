@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PromptLint</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="layout header-content">
+            <h1>PromptLint</h1>
+            <span class="badge{% if app_env == 'DEV' %} badge-dev{% elif app_env == 'PROD' %} badge-prod{% endif %}">{{ app_env }}</span>
+        </div>
+    </header>
+    <main class="layout">
+        <section class="panel" aria-labelledby="form-title">
+            <h2 id="form-title">Analiza tu prompt</h2>
+            <form action="{{ url_for('analyze') }}" method="post">
+                <label for="prompt">Prompt</label>
+                <textarea id="prompt" name="prompt" rows="7" required>{{ prompt }}</textarea>
+                <label for="model">Modelo</label>
+                <select id="model" name="model" required>
+                    {% for model in models %}
+                    <option value="{{ model }}"{% if model == selected_model %} selected{% endif %}>{{ model }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Analizar</button>
+            </form>
+            {% if error %}
+            <p class="error" role="alert">{{ error }}</p>
+            {% endif %}
+        </section>
+        {% if result %}
+        <section class="panel" aria-labelledby="result-title">
+            <h2 id="result-title">Resultado del análisis</h2>
+            <dl class="metrics">
+                <div><dt>Modelo</dt><dd>{{ result.model }}</dd></div>
+                <div><dt>Tokens estimados</dt><dd>{{ result.estimated_tokens }}</dd></div>
+                <div><dt>Costo estimado (USD)</dt><dd>{{ result.estimated_cost_usd }}</dd></div>
+                <div><dt>Puntuación</dt><dd>{{ result.score }}</dd></div>
+                <div><dt>Entorno de la API</dt><dd>{{ result.env }}</dd></div>
+            </dl>
+            <h3>Sugerencias</h3>
+            {% if result.suggestions %}
+            <ul>
+                {% for suggestion in result.suggestions %}<li>{{ suggestion }}</li>{% endfor %}
+            </ul>
+            {% else %}
+            <p>Sin sugerencias.</p>
+            {% endif %}
+            <h3>Alertas</h3>
+            {% if result.alerts %}
+            <ul>
+                {% for alert in result.alerts %}<li>{{ alert }}</li>{% endfor %}
+            </ul>
+            {% else %}
+            <p>Sin alertas.</p>
+            {% endif %}
+        </section>
+        {% endif %}
+    </main>
+</body>
+</html>
